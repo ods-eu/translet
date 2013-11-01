@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+	<!ENTITY buildProps SYSTEM "./build.properties">
+]>
+
+<project name="translet" default="build" basedir=".">
+	
+	&buildProps;
+	
+	<property name="appname" value="${ant.project.name}" />
+	<property name="compile.debug" value="true" />
+	<property name="compile.optimize" value="false" />
+
+	<path id="compile.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<path id="run.classpath">
+		<pathelement location="${build.dir}" />
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<target name="init">
+		<echo message="-------- Start building, please wait --------" />
+	</target>
+
+	<target name="build" depends="compile">
+		<!--copy file="${conf.dir}/translet.xsl" todir="${build.dir}/gr/agroknow/metadata/translet/xsl"/-->
+		<echo message=" Building with ${ant.version} on Java ${ant.java.version}...." />
+	</target>
+
+	<target name="compile" depends="prepare">
+		<javac srcdir="${src.dir}/" destdir="${build.dir}/" encoding="utf8" debug="${compile.debug}">
+			<classpath refid="compile.classpath" />
+			<!--
+                <compilerarg value="-Xlint:unchecked" />
+            -->
+		</javac>
+	</target>
+
+	<target name="prepare" depends="init">
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${build.dir}" />
+	</target>
+
+	<target name="clean">
+		<delete dir="${dist.dir}" />
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="dist" depends="package">
+		<echo message=" Packaging jar file...." />
+	</target>
+
+	<target name="package" depends="build">
+		<jar destfile="${dist.dir}/${appname}.jar" basedir="${build.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="gr.agroknow.metadata.translet.Translet" />
+				<attribute name="Class-Path" value="${lib.dir}" />
+			</manifest>
+		</jar>
+		<copy file="configure.properties" todir="${dist.dir}" />
+
+		<mkdir dir="${dist.dir}/lib/" />
+		<copy todir="${dist.dir}/lib/">
+			<fileset dir="${lib.dir}" />
+		</copy>
+	</target>
+
+	<target name="runtest">
+		<java classname="gr.agroknow.metadata.translet.Translet" classpathref="run.classpath">
+			<arg value="${conf.dir}/translet.xsl" />
+			<arg value="/Users/dmssrt/tmp/translet/source" />
+			<arg value="/Users/dmssrt/tmp/translet/target" />
+			<arg value="/Users/dmssrt/tmp/translet/bad" />
+		</java>
+	</target>
+
+</project>
