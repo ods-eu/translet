@@ -60,29 +60,34 @@ public class Translet {
 			System.exit(-1);
 		}
 
-		StringBuffer logString = new StringBuffer();
-
 		String date = new Date().toString();
 
 		System.out.println("Transformation date:" + date);
 		Translet translet = new Translet();
 
-		logString.append(translet.ini());
+		String generalInfo = translet.ini();
+
+		// logString.append(translet.ini());
 
 		for (File file : input.listFiles()) {
-			translet.transform(file);
+			StringBuffer logString = new StringBuffer();
+			logString.append(generalInfo);
+			String name = file.getName();
+			name = name.substring(0, name.indexOf(".xml"));
+			logString.append(" " + name);
+			logString.append(" " + translet.transform(file));
+			slf4jLogger.info(logString.toString());
 		}
 
 		System.out.println("Number of healthy transformed files:"
 				+ output.listFiles().length);
-		logString.append(" " + output.listFiles().length);
+		// logString.append(" " + output.listFiles().length);
 
 		System.out.println("Number of bad transformed files:"
 				+ bad.listFiles().length);
-		logString.append(" " + bad.listFiles().length);
+		// logString.append(" " + bad.listFiles().length);
 
 		System.out.println("Transformation is done.");
-		slf4jLogger.info(logString.toString());
 
 	}
 
@@ -102,7 +107,7 @@ public class Translet {
 
 		System.out.println("Nuber of files to transform:"
 				+ input.listFiles().length);
-		//str.append(" " + input.listFiles().length);
+		str.append(" " + input.listFiles().length);
 
 		try {
 			transformer = factory.newTransformer(xslStream);
@@ -117,7 +122,7 @@ public class Translet {
 		return str.toString();
 	}
 
-	private void transform(File source) {
+	private String transform(File source) {
 		StreamSource in = new StreamSource(source);
 		// System.out.println( output.getAbsolutePath() + File.separator +
 		// source.getName() ) ;
@@ -126,13 +131,16 @@ public class Translet {
 		StreamResult out = new StreamResult(target);
 		try {
 			transformer.transform(in, out);
+			return "Healthy";
 		} catch (TransformerException te) {
 			try {
 				FileUtils.copyFileToDirectory(source, bad);
 				System.err.println("Cannot convert file: " + source.getName());
+				return "Bad";
 			} catch (IOException ioe) {
 				System.err.println("Cannot copy file " + source.getName()
 						+ " to " + bad.getAbsolutePath());
+				return "Bad";
 			}
 		}
 	}
