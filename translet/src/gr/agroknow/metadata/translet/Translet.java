@@ -102,7 +102,7 @@ public class Translet {
 
 		System.out.println("Nuber of files to transform:"
 				+ input.listFiles().length);
-		str.append(" " + input.listFiles().length);
+		//str.append(" " + input.listFiles().length);
 
 		try {
 			transformer = factory.newTransformer(xslStream);
