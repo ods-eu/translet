@@ -3,6 +3,9 @@ package gr.agroknow.metadata.translet;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -14,6 +17,8 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.corba.se.spi.orbutil.threadpool.Work;
 
 public class Translet {
 	private static File xsl;
@@ -69,7 +74,14 @@ public class Translet {
 
 		// logString.append(translet.ini());
 
+		// int availableProcessors = Runtime.getRuntime().availableProcessors();
+		// System.out.println("Available cores:" + availableProcessors);
+		// ExecutorService executor = Executors
+		// .newFixedThreadPool(availableProcessors);
+
+		long start = System.currentTimeMillis();
 		for (File file : input.listFiles()) {
+
 			StringBuffer logString = new StringBuffer();
 			logString.append(generalInfo);
 			String name = file.getName();
@@ -77,7 +89,19 @@ public class Translet {
 			logString.append(" " + name);
 			logString.append(" " + translet.transform(file));
 			slf4jLogger.info(logString.toString());
+
+			// Worker worker = new Worker(generalInfo, slf4jLogger, file,
+			// translet);
+			// executor.execute(worker);
+
 		}
+
+		// executor.shutdown();
+		// try {
+		// executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		long end = System.currentTimeMillis();
+		long diff = end - start;
+		System.out.println("Duration:" + diff + "ms");
 
 		System.out.println("Number of healthy transformed files:"
 				+ output.listFiles().length);
@@ -88,6 +112,10 @@ public class Translet {
 		// logString.append(" " + bad.listFiles().length);
 
 		System.out.println("Transformation is done.");
+
+		// } catch (InterruptedException e) { // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 
 	}
 
@@ -122,7 +150,7 @@ public class Translet {
 		return str.toString();
 	}
 
-	private String transform(File source) {
+	public String transform(File source) {
 		StreamSource in = new StreamSource(source);
 		// System.out.println( output.getAbsolutePath() + File.separator +
 		// source.getName() ) ;
