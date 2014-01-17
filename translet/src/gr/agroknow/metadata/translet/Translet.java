@@ -2,10 +2,8 @@ package gr.agroknow.metadata.translet;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -18,37 +16,39 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.corba.se.spi.orbutil.threadpool.Work;
-
 public class Translet {
-	private static File xsl;
+	// private static File xsl;
 	private static File input;
 	private static File output;
 	private static File bad;
+
+	private static URL xslURL;
 
 	private Transformer transformer;
 
 	private static final Logger slf4jLogger = LoggerFactory
 			.getLogger(Translet.class);
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		if (args.length != 4) {
 			System.err.println("Usage : ");
 			System.err
-					.println("java -jar gr.agroknow.metadata.translet.Translet <xsl file> <input folder> <output folder> <bad folder>");
+					.println("java -jar gr.agroknow.metadata.translet.Translet <xsl file(URL)> <input folder> <output folder> <bad folder>");
 			System.exit(-1);
 		}
 
-		xsl = new File(args[0]);
+		// xsl = new File(args[0]);
+		xslURL = new URL(args[0]);
 		input = new File(args[1]);
 		output = new File(args[2]);
 		bad = new File(args[3]);
 
-		if (!xsl.exists() || !xsl.isFile()) {
-			System.err.println("Invalid xsl transformation: "
-					+ xsl.getAbsolutePath());
-			System.exit(-1);
-		}
+		// if (!xsl.exists() || !xsl.isFile()) {
+		// System.err.println("Invalid xsl transformation: "
+		// + xsl.getAbsolutePath());
+		// System.exit(-1);
+		// }
+
 		if (!input.exists() || !input.isDirectory()) {
 			System.err.println("Invalid input directory: "
 					+ input.getAbsolutePath());
@@ -119,14 +119,17 @@ public class Translet {
 
 	}
 
-	private String ini() {
+	private String ini() throws IOException {
 		TransformerFactory factory = new net.sf.saxon.TransformerFactoryImpl();// TransformerFactory.newInstance()
 																				// ;
-		StreamSource xslStream = new StreamSource(xsl);
-		StringBuffer str = new StringBuffer();
+		// StreamSource xslStream = new StreamSource(xsl);
+		StreamSource xslURLStrm = new StreamSource(xslURL.openStream());
 
+		StringBuffer str = new StringBuffer();
 		String repo = input.getName();
-		String xslUsed = xsl.getName();
+		// String xslUsed = xsl.getName();
+
+		String xslUsed = xslURL.getPath();
 		System.out.println("Transforming repository:" + repo);
 		str.append(repo);
 
@@ -138,7 +141,8 @@ public class Translet {
 		str.append(" " + input.listFiles().length);
 
 		try {
-			transformer = factory.newTransformer(xslStream);
+			// transformer = factory.newTransformer(xslStream);
+			transformer = factory.newTransformer(xslURLStrm);
 
 		} catch (TransformerConfigurationException e) {
 			System.err.println("Cannot initialize transformer: "
